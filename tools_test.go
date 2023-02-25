@@ -1,10 +1,12 @@
 package toolkit
 
 import (
+	"errors"
 	"fmt"
 	"image"
 	"image/png"
 	"io"
+	"io/fs"
 	"mime/multipart"
 	"net/http/httptest"
 	"os"
@@ -81,7 +83,7 @@ func TestTools_UploadFiles(t *testing.T) {
 		}
 
 		if !e.errorExpected {
-			if _, err := os.Stat(fmt.Sprintf("./testdata/uploads/%s", uploadedFiles[0].NewFileName)); os.IsNotExist(err) {
+			if _, err := os.Stat(fmt.Sprintf("./testdata/uploads/%s", uploadedFiles[0].NewFileName)); errors.Is(err, fs.ErrNotExist) {
 				t.Errorf("%s: expected file to exist: %s", e.name, err.Error())
 			}
 
@@ -89,7 +91,7 @@ func TestTools_UploadFiles(t *testing.T) {
 			_ = os.Remove(fmt.Sprintf("./testdata/uploads/%s", uploadedFiles[0].NewFileName))
 		}
 
-		if !e.errorExpected && err != nil {
+		if e.errorExpected && err == nil {
 			t.Errorf("%s: error expected but none received", e.name)
 		}
 
@@ -139,7 +141,7 @@ func TestTools_UploadOneFile(t *testing.T) {
 		t.Error(err)
 	}
 
-	if _, err := os.Stat(fmt.Sprintf("./testdata/uploads/%s", uploadedFiles.NewFileName)); os.IsNotExist(err) {
+	if _, err := os.Stat(fmt.Sprintf("./testdata/uploads/%s", uploadedFiles.NewFileName)); errors.Is(err, fs.ErrNotExist) {
 		t.Errorf("expected file to exist: %s", err.Error())
 	}
 
